@@ -1,0 +1,13 @@
+{
+    "idf.portWin": "COM18",
+    "idf.adapterTargetName": "esp32s3",
+    "idf.openOcdConfigs": [
+        "board/esp32s3-bridge.cfg"
+    ],
+    "idf.flashType": "UART",
+    "files.associations": {
+        "freertos.h": "c",
+        "sdkconfig.h": "c",
+        "esp_system.h": "c"
+    }
+}
