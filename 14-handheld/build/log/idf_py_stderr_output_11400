@@ -1,1 +1,0 @@
-D:/Code/esp32-s3/14-handheld/managed_components/espressif__esp_codec_dev/Kconfig:4: warning: ESP_IDF_VERSION has 'option env="ESP_IDF_VERSION"', but the environment variable ESP_IDF_VERSION is not set

@@ -4,16 +4,16 @@
  * SPDX-License-Identifier: Unlicense OR CC0-1.0
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/event_groups.h"
-#include "esp_system.h"
-#include "esp_wifi.h"
-#include "esp_event.h"
-#include "esp_log.h"
+#include <stdio.h> // 包含标准输入输出库
+#include <stdlib.h>// 包含标准库，提供内存管理、随机数生成等功能
+#include <string.h>// 包含字符串处理库
+#include "freertos/FreeRTOS.h"// 包含 FreeRTOS 操作系统头文件
+#include "freertos/task.h"// 包含 FreeRTOS 任务管理相关头文件
+#include "freertos/event_groups.h"// 包含 FreeRTOS 事件组相关头文件
+#include "esp_system.h"// 包含 ESP32 系统相关功能头文件
+#include "esp_wifi.h"// 包含 ESP32 Wi-Fi 相关功能头文件
+#include "esp_event.h"// 包含 ESP32 事件处理相关头文件
+#include "esp_log.h"// 包含非易失性存储（NVS）相关头文件
 #include "nvs_flash.h"
 #include "esp_bt.h"
 
@@ -167,68 +167,69 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
     }
 }
 
+// 启动蓝牙 HID 设备
 void bt_hid_start(void)
 {
-    esp_err_t ret;
+    esp_err_t ret;// 返回值变量
 
-    // Initialize NVS.
+    // 初始化 NVS（非易失性存储）
     ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {// 检查 NVS 初始化错误
+        ESP_ERROR_CHECK(nvs_flash_erase());// 清除 NVS
+        ret = nvs_flash_init();// 重新初始化 NVS
     }
-    ESP_ERROR_CHECK( ret );
+    ESP_ERROR_CHECK( ret ); // 检查错误
 
-    ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
+    ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));// 释放经典蓝牙内存
 
-    esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
-    ret = esp_bt_controller_init(&bt_cfg);
+    esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT(); // 默认蓝牙控制器配置
+    ret = esp_bt_controller_init(&bt_cfg);// 初始化蓝牙控制器
     if (ret) {
-        ESP_LOGE(HID_DEMO_TAG, "%s initialize controller failed\n", __func__);
-        return;
+        ESP_LOGE(HID_DEMO_TAG, "%s initialize controller failed\n", __func__);// 日志输出错误
+        return;// 退出函数
     }
 
-    ret = esp_bt_controller_enable(ESP_BT_MODE_BLE);
+    ret = esp_bt_controller_enable(ESP_BT_MODE_BLE); // 启用 BLE 模式
     if (ret) {
-        ESP_LOGE(HID_DEMO_TAG, "%s enable controller failed\n", __func__);
-        return;
+        ESP_LOGE(HID_DEMO_TAG, "%s enable controller failed\n", __func__); // 日志输出错误
+        return;// 退出函数
     }
 
-    ret = esp_bluedroid_init();
+    ret = esp_bluedroid_init(); // 初始化 Bluedroid
     if (ret) {
-        ESP_LOGE(HID_DEMO_TAG, "%s init bluedroid failed\n", __func__);
-        return;
+        ESP_LOGE(HID_DEMO_TAG, "%s init bluedroid failed\n", __func__);// 日志输出错误
+        return;// 退出函数
     }
 
-    ret = esp_bluedroid_enable();
+    ret = esp_bluedroid_enable(); // 启用 Bluedroid
     if (ret) {
-        ESP_LOGE(HID_DEMO_TAG, "%s init bluedroid failed\n", __func__);
-        return;
+        ESP_LOGE(HID_DEMO_TAG, "%s init bluedroid failed\n", __func__);// 日志输出错误
+        return;// 退出函数
     }
 
-    if((ret = esp_hidd_profile_init()) != ESP_OK) {
-        ESP_LOGE(HID_DEMO_TAG, "%s init bluedroid failed\n", __func__);
+    if((ret = esp_hidd_profile_init()) != ESP_OK) {// 初始化 HID 配置
+        ESP_LOGE(HID_DEMO_TAG, "%s init bluedroid failed\n", __func__); // 日志输出错误
     }
 
-    ///register the callback function to the gap module
+    /// 注册 GAP 事件处理函数
     esp_ble_gap_register_callback(gap_event_handler);
-    esp_hidd_register_callbacks(hidd_event_callback);
+    esp_hidd_register_callbacks(hidd_even t_callback);// 注册 HID 事件回调函数
 
-    /* set the security iocap & auth_req & key size & init key response key parameters to the stack*/
-    esp_ble_auth_req_t auth_req = ESP_LE_AUTH_BOND;     //bonding with peer device after authentication
-    esp_ble_io_cap_t iocap = ESP_IO_CAP_NONE;           //set the IO capability to No output No input
-    uint8_t key_size = 16;      //the key size should be 7~16 bytes
-    uint8_t init_key = ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK;
-    uint8_t rsp_key = ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK;
-    esp_ble_gap_set_security_param(ESP_BLE_SM_AUTHEN_REQ_MODE, &auth_req, sizeof(uint8_t));
-    esp_ble_gap_set_security_param(ESP_BLE_SM_IOCAP_MODE, &iocap, sizeof(uint8_t));
-    esp_ble_gap_set_security_param(ESP_BLE_SM_MAX_KEY_SIZE, &key_size, sizeof(uint8_t));
+    /* 设置安全参数*/
+    esp_ble_auth_req_t auth_req = ESP_LE_AUTH_BOND;      // 配对后进行绑定
+    esp_ble_io_cap_t iocap = ESP_IO_CAP_NONE;           // 设置 IO 能力为无输入无输出
+    uint8_t key_size = 16;      //密钥大小应为 7~16 字节
+    uint8_t init_key = ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK;// 初始化密钥
+    uint8_t rsp_key = ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK;// 响应密钥
+    esp_ble_gap_set_security_param(ESP_BLE_SM_AUTHEN_REQ_MODE, &auth_req, sizeof(uint8_t));// 设置认证请求模式
+    esp_ble_gap_set_security_param(ESP_BLE_SM_IOCAP_MODE, &iocap, sizeof(uint8_t));// 设置 IO 能力模式
+    esp_ble_gap_set_security_param(ESP_BLE_SM_MAX_KEY_SIZE, &key_size, sizeof(uint8_t)); // 设置最大密钥大小
     /* If your BLE device act as a Slave, the init_key means you hope which types of key of the master should distribute to you,
     and the response key means which key you can distribute to the Master;
     If your BLE device act as a master, the response key means you hope which types of key of the slave should distribute to you,
     and the init key means which key you can distribute to the slave. */
-    esp_ble_gap_set_security_param(ESP_BLE_SM_SET_INIT_KEY, &init_key, sizeof(uint8_t));
-    esp_ble_gap_set_security_param(ESP_BLE_SM_SET_RSP_KEY, &rsp_key, sizeof(uint8_t));
+    esp_ble_gap_set_security_param(ESP_BLE_SM_SET_INIT_KEY, &init_key, sizeof(uint8_t));// 设置初始化密钥
+    esp_ble_gap_set_security_param(ESP_BLE_SM_SET_RSP_KEY, &rsp_key, sizeof(uint8_t));// 设置响应密钥 
 }
 
 static void btn2_event_handler(lv_event_t * e)
@@ -266,32 +267,35 @@ static void btn1_event_handler(lv_event_t * e)
 // 运行蓝牙HID控制程序
 void app_hid_ctrl(void)
 {
-    lvgl_port_lock(0);
+    lvgl_port_lock(0);// 锁定 LVGL 端口
 
-    lv_obj_t * label;
+    lv_obj_t * label;// 标签对象指针
 
-    lv_obj_t * btn1 = lv_btn_create(lv_scr_act());
-    lv_obj_add_event_cb(btn1, btn1_event_handler, LV_EVENT_ALL, NULL);
-    lv_obj_align(btn1, LV_ALIGN_CENTER, -50, 0);
-    lv_obj_set_size(btn1, 80, 80);
+    // 创建按钮 音量-
+    lv_obj_t * btn1 = lv_btn_create(lv_scr_act());// 创建按钮  音量-
+    lv_obj_add_event_cb(btn1, btn1_event_handler, LV_EVENT_ALL, NULL);// 添加事件回调
+    lv_obj_align(btn1, LV_ALIGN_CENTER, -50, 0); // 对齐按钮位置
+    lv_obj_set_size(btn1, 80, 80);// 设置按钮大小
 
-    label = lv_label_create(btn1);
-    lv_label_set_text(label, LV_SYMBOL_VOLUME_MID);
-    lv_obj_set_style_text_font(label, &lv_font_montserrat_20, 0);
-    lv_obj_center(label);
+    label = lv_label_create(btn1);// 创建标签
+    lv_label_set_text(label, LV_SYMBOL_VOLUME_MID); // 设置标签文本
+    lv_obj_set_style_text_font(label, &lv_font_montserrat_20, 0); // 设置字体
+    lv_obj_center(label);// 标签居中
 
-    lv_obj_t * btn2 = lv_btn_create(lv_scr_act());
-    lv_obj_add_event_cb(btn2, btn2_event_handler, LV_EVENT_ALL, NULL);
-    lv_obj_align(btn2, LV_ALIGN_CENTER, 50, 0);
-    lv_obj_set_size(btn2, 80, 80);
 
-    label = lv_label_create(btn2);
-    lv_label_set_text(label, LV_SYMBOL_VOLUME_MAX);
-    lv_obj_set_style_text_font(label, &lv_font_montserrat_20, 0);
-    lv_obj_center(label);
+    // 创建按钮 音量+
+    lv_obj_t * btn2 = lv_btn_create(lv_scr_act());// 创建按钮  音量+
+    lv_obj_add_event_cb(btn2, btn2_event_handler, LV_EVENT_ALL, NULL);// 添加事件回调
+    lv_obj_align(btn2, LV_ALIGN_CENTER, 50, 0);// 对齐按钮位置
+    lv_obj_set_size(btn2, 80, 80);// 设置按钮大小
 
-    lvgl_port_unlock();
+    label = lv_label_create(btn2); // 创建标签
+    lv_label_set_text(label, LV_SYMBOL_VOLUME_MAX); // 设置标签文本
+    lv_obj_set_style_text_font(label, &lv_font_montserrat_20, 0); // 设置字体
+    lv_obj_center(label);// 标签居中
 
-    bt_hid_start();
+    lvgl_port_unlock(); // 解锁 LVGL 端口
+
+    bt_hid_start();// 启动蓝牙 HID 设备
 }
 
