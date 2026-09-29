@@ -1,0 +1,68 @@
+menu "BSP — 板级支持包（立创实战派 ESP32-S3）"
+
+    config BSP_I2C_FREQ_KHZ
+        int "I2C 时钟频率 (kHz)"
+        default 100
+        range 50 400
+        help
+            板载 I2C 总线速度。触摸/IO 扩展/IMU/音频 Codec 共用该总线。
+
+    config BSP_LCD_SPI_FREQ_MHZ
+        int "LCD SPI 时钟 (MHz)"
+        default 80
+        range 10 80
+        help
+            ST7789 SPI 时钟。布线不良或个别屏幕批次不稳时可降频。
+
+    config BSP_LCD_SWAP_XY
+        bool "LCD 旋转（swap_xy）"
+        default y
+        help
+            屏幕横屏安装时开启。显示面板、LVGL rotation、触摸坐标会同步。
+
+    config BSP_LCD_MIRROR_X
+        bool "LCD X 镜像"
+        default y
+
+    config BSP_LCD_MIRROR_Y
+        bool "LCD Y 镜像"
+        default n
+
+    config BSP_LCD_INVERT_COLOR
+        bool "LCD 颜色反转（ST7789 模组通常需要）"
+        default y
+
+    config BSP_LCD_BACKLIGHT_INVERTED
+        bool "背光 PWM 输出反相"
+        default y
+        help
+            背光为低电平点亮时开启。
+
+    config BSP_ENABLE_TOUCH
+        bool "启用触摸屏（FT5x06）"
+        default y
+
+    config BSP_ENABLE_LVGL
+        bool "启用 LVGL 移植层（esp_lvgl_port）"
+        default y
+        help
+            提供 lvgl_port 初始化、显示屏注册与触摸输入设备注册。
+            关闭后应用可自行对接 LVGL。
+
+    config BSP_ENABLE_CAMERA
+        bool "启用摄像头（DVP）"
+        default y
+
+    config BSP_ENABLE_AUDIO
+        bool "启用音频（ES8311 + ES7210）"
+        default y
+
+    config BSP_ENABLE_IMU
+        bool "启用姿态传感器（QMI8658）"
+        default y
+
+    config BSP_ENABLE_STORAGE
+        bool "启用存储（SPIFFS + TF 卡）"
+        default y
+
+endmenu
