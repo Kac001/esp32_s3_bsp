@@ -18,14 +18,19 @@ LVGL 字体是**按用字子集编译**进固件的（全字库几百 KB~几 MB�
 
 ```bash
 # ① 从源码提取界面用字（去重字符集）
-python tools/check_font_coverage.py --src <应用源码目录> --emit-symbols symbols.txt
+#    ★ --src 要覆盖所有提供 UI 字符串的目录：应用源码 + bsp/ 等组件
+#      （漏扫的字符串会变成“豆腐块”，如板名里的数字）
+#    ★ 强烈建议 --extra-ascii 兜底数字/英文，避免动态拼接文本缺字
+python tools/check_font_coverage.py --src <应用源码目录> --src bsp/include \
+     --emit-symbols symbols.txt
 
 # ② 生成“刚好覆盖”的 LVGL 字体（也可用 lv_font_conv 自备字体）
-python tools/gen_lvgl_font.py --chars-file symbols.txt --size 20 \
+python tools/gen_lvgl_font.py --chars-file symbols.txt --extra-ascii --size 20 \
      --name font_ui_cn_20 -o <应用目录>/font_ui_cn_20.c
 
 # ③ 校验：生成的字体确实覆盖全部用字（必须 exit 0）
-python tools/check_font_coverage.py --font <应用目录>/font_ui_cn_20.c --src <应用源码目录>
+python tools/check_font_coverage.py --font <应用目录>/font_ui_cn_20.c \
+     --src <应用源码目录> --src bsp/include
 ```
 
 输出形如：

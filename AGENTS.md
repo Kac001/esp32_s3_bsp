@@ -49,10 +49,14 @@
 3. **中文界面必须检查字体覆盖**（否则会出现“豆腐块”）：
    ```bash
    # 提取用字 → 生成/选择字体 → 校验覆盖
-   python tools/check_font_coverage.py --src <应用源码目录> --emit-symbols symbols.txt
-   python tools/gen_lvgl_font.py --chars-file symbols.txt --size 20 \
+   # 注意：--src 要包含所有提供 UI 字符串的目录（含 bsp/ 等组件），
+   #       并用 --extra-ascii 兜底数字/英文（漏扫就会出现"lckfb-esp▢▢"式方框）
+   python tools/check_font_coverage.py --src <应用源码目录> --src bsp/include \
+        --emit-symbols symbols.txt
+   python tools/gen_lvgl_font.py --chars-file symbols.txt --extra-ascii --size 20 \
         --name font_ui_cn_20 -o <应用目录>/font_ui_cn_20.c
-   python tools/check_font_coverage.py --font <应用目录>/font_ui_cn_20.c --src <应用源码目录>
+   python tools/check_font_coverage.py --font <应用目录>/font_ui_cn_20.c \
+        --src <应用源码目录> --src bsp/include
    ```
    最后一条命令必须输出“全部字符均被字体覆盖 ✓”（exit 0），详见
    [docs/ui-font.md](docs/ui-font.md)。
