@@ -1,5 +1,6 @@
 # 构建产物
 **/build/
+build_log.txt
 examples/**/sdkconfig
 examples/**/sdkconfig.old
 examples/**/dependencies.lock
