@@ -121,6 +121,9 @@ esp_err_t bsp_display_init(void)
     esp_lcd_panel_swap_xy(s_panel, BSP_LCD_CFG_SWAP_XY);
     esp_lcd_panel_mirror(s_panel, BSP_LCD_CFG_MIRROR_X, BSP_LCD_CFG_MIRROR_Y);
     esp_lcd_panel_disp_on_off(s_panel, true);
+    /* 初始化完成后点亮背光（否则 PWM duty=0 屏幕全黑）；
+     * 应用可随时用 bsp_display_brightness_set() 调节 */
+    bsp_display_backlight_on();
 
     s_line_buf = (uint16_t *)heap_caps_malloc(BSP_LCD_H_RES * sizeof(uint16_t),
                                               MALLOC_CAP_DMA | MALLOC_CAP_INTERNAL);
