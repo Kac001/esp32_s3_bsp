@@ -1,0 +1,16 @@
+# 构建产物
+**/build/
+examples/**/sdkconfig
+examples/**/sdkconfig.old
+examples/**/dependencies.lock
+
+# 托管组件（由 idf_component.yml 自动拉取）
+examples/**/managed_components/
+
+# 字体工具中间产物
+symbols.txt
+*-font-report.json
+__pycache__/
+
+# 诊断/临时
+.dsh-acl-reports/

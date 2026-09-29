@@ -1,0 +1,15 @@
+## bsp — 立创实战派 ESP32-S3 板级支持包
+version: "1.0.0"
+description: >
+  立创开发板·实战派（ESP32-S3）板级支持包：LCD/触摸/摄像头/音频/存储/IMU
+  与 LVGL 移植层。界面与业务逻辑由应用自行实现。
+url: ""
+tags: [bsp, esp32s3, lvgl]
+
+dependencies:
+  idf: ">=5.1.0"                           # 实测 5.1.4（rgb_ele_order 等字段）
+  lvgl/lvgl: "~8.3.0"                    # LVGL 8.3（与 esp_lvgl_port 1.4 配套）
+  espressif/esp_lvgl_port: "~1.4.0"      # LVGL 移植层
+  espressif/esp_lcd_touch_ft5x06: "~1.0.6"  # 触摸屏
+  espressif/esp_codec_dev: "~1.3.0"      # ES8311/ES7210 音频驱动
+  espressif/esp32-camera: "^2.0.10"      # DVP 摄像头
