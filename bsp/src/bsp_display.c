@@ -5,6 +5,8 @@
 #include "esp_check.h"
 #include "esp_log.h"
 #include "esp_heap_caps.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "driver/ledc.h"
 #include "driver/spi_master.h"
 #include "esp_lcd_panel_io.h"
@@ -104,9 +106,6 @@ esp_err_t bsp_display_init(void)
     ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)BSP_LCD_SPI_NUM, &io_config, &s_io),
                         TAG, "New panel IO failed");
 
-    /* LCD_CS 走 PCA9557：面板初始化前置低，保持选中 */
-    ESP_RETURN_ON_ERROR(bsp_ioe_write(BSP_IOE_LCD_CS, false), TAG, "LCD_CS assert failed");
-
     ESP_LOGD(TAG, "Install ST7789 driver");
     const esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = BSP_LCD_RST,
@@ -115,7 +114,11 @@ esp_err_t bsp_display_init(void)
     };
     ESP_RETURN_ON_ERROR(esp_lcd_new_panel_st7789(s_io, &panel_config, &s_panel), TAG, "New panel failed");
 
+    /* 与厂商 demo 保持一致：复位期间 CS 保持未选中（软复位命令被屏忽略），
+     * 复位后才拉低 CS 发初始化序列。实测该时序在本屏上工作。 */
     esp_lcd_panel_reset(s_panel);
+    ESP_RETURN_ON_ERROR(bsp_ioe_write(BSP_IOE_LCD_CS, false), TAG, "LCD_CS assert failed");
+    vTaskDelay(pdMS_TO_TICKS(150));
     esp_lcd_panel_init(s_panel);
     esp_lcd_panel_invert_color(s_panel, BSP_LCD_CFG_INVERT);
     esp_lcd_panel_swap_xy(s_panel, BSP_LCD_CFG_SWAP_XY);
