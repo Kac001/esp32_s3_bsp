@@ -4,7 +4,9 @@
  * 相比 demo 的修正：
  *   - I2S 时钟不再硬编码 16kHz，bsp_audio_set_fs() 会同时重配 I2S 时钟与 Codec；
  *   - ES7210 4 路麦克风全部使能（esp-sr feed 重排依赖 4 通道）；
- *   - 初始化后即设置默认音量。
+ *   - 初始化后即设置默认音量；
+ *   - bsp_audio_set_fs() 先关全部设备再统一重配：I2S1 收发共享时钟，
+ *     RX 尚在运行时重配 TX 采样率会被驱动拒绝，导致播放无声。
  */
 #include <assert.h>
 #include "esp_check.h"
@@ -207,7 +209,11 @@ esp_err_t bsp_audio_set_fs(uint32_t rate, uint32_t bits_cfg, i2s_slot_mode_t ch)
 {
     /* 采样率/位宽由 esp_codec_dev_close/open 处理：
      * 其内部会 disable → reconfig(I2S 时钟+slot) → enable，不要在外部手动
-     * i2s_channel_reconfig_std_clock（通道使能状态下会报 invalid state）。 */
+     * i2s_channel_reconfig_std_clock（通道使能状态下会报 invalid state）。
+     *
+     * ★ 必须「先关全部、再开全部」：I2S1 收发共享时钟，RX 尚在运行时
+     *   重配 TX 采样率会被驱动拒绝（"Mode conflict sample_rate"），
+     *   TX 通道会停留在未启用状态，之后所有写入都丢失。 */
     esp_codec_dev_sample_info_t fs = {
         .sample_rate = rate,
         .channel = ch,
@@ -217,10 +223,14 @@ esp_err_t bsp_audio_set_fs(uint32_t rate, uint32_t bits_cfg, i2s_slot_mode_t ch)
     esp_err_t ret = ESP_OK;
     if (s_play_dev) {
         ret |= esp_codec_dev_close(s_play_dev);
-        ret |= esp_codec_dev_open(s_play_dev, &fs);
     }
     if (s_record_dev) {
         ret |= esp_codec_dev_close(s_record_dev);
+    }
+    if (s_play_dev) {
+        ret |= esp_codec_dev_open(s_play_dev, &fs);
+    }
+    if (s_record_dev) {
         ret |= esp_codec_dev_open(s_record_dev, &fs);
         ret |= esp_codec_dev_set_in_gain(s_record_dev, BSP_AUDIO_DEFAULT_ADC_GAIN_DB);
     }
