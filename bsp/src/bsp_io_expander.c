@@ -5,7 +5,6 @@
 #include "esp_check.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
-#include "driver/i2c.h"
 
 #include "bsp_io_expander.h"
 #include "bsp_i2c.h"
@@ -23,18 +22,17 @@ static const char *TAG = "bsp_ioe";
 
 static bool s_inited = false;
 static uint8_t s_out_latch = BSP_PCA9557_OUT_DEFAULT;
+static i2c_master_dev_handle_t s_dev = NULL;
 
 static esp_err_t pca9557_read(uint8_t reg, uint8_t *data, size_t len)
 {
-    return i2c_master_write_read_device(BSP_I2C_NUM, BSP_PCA9557_ADDR, &reg, 1,
-                                        data, len, pdMS_TO_TICKS(I2C_TIMEOUT_MS));
+    return i2c_master_transmit_receive(s_dev, &reg, 1, data, len, pdMS_TO_TICKS(I2C_TIMEOUT_MS));
 }
 
 static esp_err_t pca9557_write(uint8_t reg, uint8_t value)
 {
     uint8_t buf[2] = { reg, value };
-    return i2c_master_write_to_device(BSP_I2C_NUM, BSP_PCA9557_ADDR, buf, sizeof(buf),
-                                      pdMS_TO_TICKS(I2C_TIMEOUT_MS));
+    return i2c_master_transmit(s_dev, buf, sizeof(buf), pdMS_TO_TICKS(I2C_TIMEOUT_MS));
 }
 
 esp_err_t bsp_ioe_init(void)
@@ -42,6 +40,9 @@ esp_err_t bsp_ioe_init(void)
     if (s_inited) {
         return ESP_OK;
     }
+
+    ESP_RETURN_ON_ERROR(bsp_i2c_init(), TAG, "I2C bus init failed");
+    ESP_RETURN_ON_ERROR(bsp_i2c_device_add(BSP_PCA9557_ADDR, &s_dev), TAG, "PCA9557 add device failed");
 
     /* 上电默认：摄像头休眠、功放关、LCD 不选中 */
     ESP_RETURN_ON_ERROR(pca9557_write(PCA9557_REG_OUTPUT, BSP_PCA9557_OUT_DEFAULT), TAG, "write output failed");

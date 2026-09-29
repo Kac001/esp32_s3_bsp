@@ -56,9 +56,9 @@ esp_err_t bsp_camera_init(const bsp_camera_config_t *cfg)
         .pin_pclk = BSP_CAM_PCLK,
         .pin_vsync = BSP_CAM_VSYNC,
         .pin_href = BSP_CAM_HREF,
-        .pin_sccb_sda = -1,                 /* 复用已初始化的 I2C0 */
-        .pin_sccb_scl = BSP_CAM_SIOC,
-        .sccb_i2c_port = BSP_I2C_NUM,
+        .pin_sccb_sda = -1,                 /* 为 -1 时不创建 SCCB 总线 */
+        .pin_sccb_scl = -1,
+        .sccb_i2c_port = BSP_I2C_NUM,       /* sccb-ng 按端口号复用 bsp_i2c 的总线 */
         .pin_pwdn = BSP_CAM_PWDN,
         .pin_reset = BSP_CAM_RESET,
         .xclk_freq_hz = BSP_CAM_XCLK_FREQ_HZ,

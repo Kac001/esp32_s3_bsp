@@ -9,7 +9,6 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "driver/i2c.h"
 
 #include "bsp_imu.h"
 #include "bsp_i2c.h"
@@ -42,21 +41,26 @@ enum {
 
 #define QMI8658_WHO_AM_I_VALUE   0x05
 
+static i2c_master_dev_handle_t s_dev = NULL;
+
 static esp_err_t qmi_read(uint8_t reg, uint8_t *data, size_t len)
 {
-    return i2c_master_write_read_device(BSP_I2C_NUM, BSP_QMI8658_ADDR, &reg, 1,
-                                        data, len, pdMS_TO_TICKS(1000));
+    return i2c_master_transmit_receive(s_dev, &reg, 1, data, len, pdMS_TO_TICKS(1000));
 }
 
 static esp_err_t qmi_write_byte(uint8_t reg, uint8_t value)
 {
     uint8_t buf[2] = { reg, value };
-    return i2c_master_write_to_device(BSP_I2C_NUM, BSP_QMI8658_ADDR, buf, sizeof(buf),
-                                      pdMS_TO_TICKS(1000));
+    return i2c_master_transmit(s_dev, buf, sizeof(buf), pdMS_TO_TICKS(1000));
 }
 
 esp_err_t bsp_imu_init(void)
 {
+    ESP_RETURN_ON_ERROR(bsp_i2c_init(), TAG, "I2C bus init failed");
+    if (s_dev == NULL) {
+        ESP_RETURN_ON_ERROR(bsp_i2c_device_add(BSP_QMI8658_ADDR, &s_dev), TAG, "QMI8658 add device failed");
+    }
+
     uint8_t id = 0;
     int retry = 3;
     while (retry-- > 0) {

@@ -64,18 +64,17 @@ lv_disp_t *bsp_lvgl_init(void)
     }
 
 #if defined(CONFIG_BSP_ENABLE_TOUCH)
-    /* 触摸屏 */
+    /* 触摸屏（失败不致命：界面仍可显示，只是没有触摸输入） */
     esp_lcd_touch_handle_t tp = NULL;
     if (bsp_touch_new(&tp) != ESP_OK) {
-        ESP_LOGE(TAG, "touch init failed");
-        return NULL;
+        ESP_LOGW(TAG, "touch init failed, continue without touch");
+    } else {
+        const lvgl_port_touch_cfg_t touch_cfg = {
+            .disp = s_disp,
+            .handle = tp,
+        };
+        s_touch_indev = lvgl_port_add_touch(&touch_cfg);
     }
-
-    const lvgl_port_touch_cfg_t touch_cfg = {
-        .disp = s_disp,
-        .handle = tp,
-    };
-    s_touch_indev = lvgl_port_add_touch(&touch_cfg);
 #endif
 
     ESP_LOGI(TAG, "LVGL ready (display %dx%d, touch %s)", BSP_LCD_H_RES, BSP_LCD_V_RES,

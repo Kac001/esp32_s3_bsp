@@ -69,7 +69,7 @@ void app_main(void)
 | 模块 | 主要接口 |
 |---|---|
 | 板级 | `bsp_board_init` `bsp_board_name` |
-| I2C | `bsp_i2c_init` `bsp_i2c_port` |
+| I2C | `bsp_i2c_init` `bsp_i2c_bus` `bsp_i2c_device_add` |
 | IO 扩展 | `bsp_ioe_init` `bsp_ioe_write/read` |
 | 显示 | `bsp_display_init` `bsp_display_fill` `bsp_display_draw_bitmap` `bsp_display_brightness_set` `bsp_display_panel` |
 | 触摸 | `bsp_touch_new` |
@@ -90,6 +90,9 @@ void app_main(void)
 5. **旋转一致性**：面板 swap/mirror、LVGL rotation、触摸坐标变换三处由同一组 Kconfig 值驱动，杜绝各写各的。
 6. **统一音频栈**：不再使用 04/05 demo 的旧版 `es7210.h`/`es8311.h` 驱动，统一 esp_codec_dev（ES7210 4 路麦克风全使能）。
 7. **行缓冲常驻**：`bsp_display_fill()` 使用常驻 DMA 行缓冲，避免 demo 中“释放早于 DMA 完成”的隐患。
+8. **I2C 迁移到新驱动**（driver/i2c_master.h）：IDF 5.5 下 esp32-camera / esp_codec_dev
+   均使用新 I2C 驱动，新旧驱动不能共存（启动即 abort）；BSP 统一新驱动，
+   摄像头 SCCB 按端口号复用同一总线，触摸屏 IO 走 esp_lcd v2 实现。
 
 ## Kconfig 说明
 

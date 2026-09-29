@@ -22,7 +22,7 @@
 
 | 要求 | 说明 |
 |---|---|
-| ESP-IDF | v5.1.x（demo 实测 5.1.4）；构建前 `export.ps1` / `export.sh` |
+| ESP-IDF | v5.1.x / v5.5.x（BSP 已在 5.1.4（demo）与 5.5.5（实测）验证）；构建前 `export.ps1` / `export.sh`。若装在非默认路径（如 `D:\Espressif`），先设 `$env:IDF_TOOLS_PATH`；脚本被执行策略拦截时加 `Set-ExecutionPolicy -Scope Process Bypass` |
 | Python | 3.8+（字体工具用；需 Pillow，本机 bundled Python 已含） |
 | esptool | 随 IDF 提供（`python -m esptool`） |
 | 串口驱动 | 烧录/看日志需要（CH340/CP210x 按板载芯片） |

@@ -2,11 +2,13 @@
 
 ## 环境准备
 
-1. 安装 **ESP-IDF v5.1.x**（demo 在 5.1.4 验证）：
-   <https://docs.espressif.com/projects/esp-idf/zh_CN/v5.1.4/esp32s3/get-started/>
+1. 安装 **ESP-IDF v5.1.x 或 v5.5.x**（BSP 已在 5.5.5 实测）：
+   <https://docs.espressif.com/projects/esp-idf/zh_CN/v5.5.5/esp32s3/get-started/>
 2. 每个终端先初始化环境：
-   - Windows：`. C:\Espressif\frameworks\esp-idf-v5.1.4\export.ps1`
+   - Windows：`. C:\Espressif\frameworks\esp-idf-v5.5.5\export.ps1`
    - Linux/macOS：`. $HOME/esp/esp-idf/export.sh`
+   - 若装在非默认路径（如 `D:\Espressif`）：先 `$env:IDF_TOOLS_PATH='D:\Espressif'`；
+   - 若提示“禁止运行脚本”：先 `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force`；
 3. 确认：`idf.py --version`、`python -m esptool version`。
 4. 字体工具用 Python 3.8+（需 Pillow）；本机 bundled Python 已含。
 

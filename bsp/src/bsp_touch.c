@@ -40,9 +40,13 @@ esp_err_t bsp_touch_new(esp_lcd_touch_handle_t *ret_touch)
     };
 
     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
-    const esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_FT5x06_CONFIG();
+    esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_FT5x06_CONFIG();
+    /* FT5x06 的默认宏未填 scl_speed_hz，新版 I2C 驱动会拒绝 0，显式补上 */
+    tp_io_config.scl_speed_hz = CONFIG_BSP_I2C_FREQ_KHZ * 1000;
+    tp_io_config.transaction_timeout_ms = 1000;
 
-    ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)bsp_i2c_port(), &tp_io_config, &tp_io_handle),
+    /* 传入新版 i2c_master 总线句柄，esp_lcd 的 _Generic 会自动选择 v2 实现 */
+    ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c(bsp_i2c_bus(), &tp_io_config, &tp_io_handle),
                         TAG, "New touch panel IO failed");
     ESP_RETURN_ON_ERROR(esp_lcd_touch_new_i2c_ft5x06(tp_io_handle, &tp_cfg, &s_touch),
                         TAG, "New FT5x06 failed");

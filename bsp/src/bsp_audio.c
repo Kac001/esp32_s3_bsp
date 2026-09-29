@@ -92,6 +92,7 @@ static esp_codec_dev_handle_t speaker_codec_init(void)
     audio_codec_i2c_cfg_t i2c_cfg = {
         .port = BSP_I2C_NUM,
         .addr = ES8311_CODEC_DEFAULT_ADDR,
+        .bus_handle = bsp_i2c_bus(),   /* 新版 i2c_master 总线（IDF 5.x） */
     };
     const audio_codec_ctrl_if_t *i2c_ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
     assert(i2c_ctrl_if);
@@ -132,6 +133,7 @@ static esp_codec_dev_handle_t microphone_codec_init(void)
     audio_codec_i2c_cfg_t i2c_cfg = {
         .port = BSP_I2C_NUM,
         .addr = BSP_ES7210_ADDR_8BIT,
+        .bus_handle = bsp_i2c_bus(),   /* 新版 i2c_master 总线（IDF 5.x） */
     };
     const audio_codec_ctrl_if_t *i2c_ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
     assert(i2c_ctrl_if);
@@ -203,17 +205,9 @@ esp_err_t bsp_audio_deinit(void)
 
 esp_err_t bsp_audio_set_fs(uint32_t rate, uint32_t bits_cfg, i2s_slot_mode_t ch)
 {
-    /* 先重配 I2S 时钟（demo 版硬编码 16kHz 的坑在此修正） */
-    if (s_tx_chan || s_rx_chan) {
-        const i2s_std_clk_config_t clk_cfg = I2S_STD_CLK_DEFAULT_CONFIG(rate);
-        if (s_tx_chan) {
-            ESP_RETURN_ON_ERROR(i2s_channel_reconfig_std_clock(s_tx_chan, &clk_cfg), TAG, "TX clk reconfig failed");
-        }
-        if (s_rx_chan) {
-            ESP_RETURN_ON_ERROR(i2s_channel_reconfig_std_clock(s_rx_chan, &clk_cfg), TAG, "RX clk reconfig failed");
-        }
-    }
-
+    /* 采样率/位宽由 esp_codec_dev_close/open 处理：
+     * 其内部会 disable → reconfig(I2S 时钟+slot) → enable，不要在外部手动
+     * i2s_channel_reconfig_std_clock（通道使能状态下会报 invalid state）。 */
     esp_codec_dev_sample_info_t fs = {
         .sample_rate = rate,
         .channel = ch,
