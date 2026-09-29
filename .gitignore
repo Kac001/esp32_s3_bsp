@@ -1,3 +1,20 @@
+# 厂商 demo（不入库，本地保留作参考）
+/01-boot_key/
+/02-attitude/
+/03-micro_sd/
+/04-audio_es7210/
+/05-audio_es8311/
+/06-lcd/
+/07-lcd_camera/
+/08-lcd_lvgl/
+/09-wifi_scan_connect/
+/10-ble_hid_device/
+/11-mp3_player/
+/12-speech_recognition/
+/13-human_face_detection/
+/14-handheld/
+/hello_world/
+
 # 构建产物
 **/build/
 build_log.txt
