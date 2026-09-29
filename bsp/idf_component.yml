@@ -3,7 +3,6 @@ version: "1.0.0"
 description: >
   立创开发板·实战派（ESP32-S3）板级支持包：LCD/触摸/摄像头/音频/存储/IMU
   与 LVGL 移植层。界面与业务逻辑由应用自行实现。
-url: ""
 tags: [bsp, esp32s3, lvgl]
 
 dependencies:

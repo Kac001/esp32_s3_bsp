@@ -25,12 +25,18 @@ lv_disp_t *bsp_lvgl_init(void)
     /* LVGL 移植环境（tick + timer 任务）；lvgl_port_init 非幂等，只允许一次 */
     if (!s_lvgl_port_inited) {
         const lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
-        ESP_RETURN_ON_ERROR(lvgl_port_init(&lvgl_cfg), TAG, "lvgl_port_init failed");
+        if (lvgl_port_init(&lvgl_cfg) != ESP_OK) {
+            ESP_LOGE(TAG, "lvgl_port_init failed");
+            return NULL;
+        }
         s_lvgl_port_inited = true;
     }
 
     /* 显示屏 */
-    ESP_RETURN_ON_ERROR(bsp_display_init(), TAG, "display init failed");
+    if (bsp_display_init() != ESP_OK) {
+        ESP_LOGE(TAG, "display init failed");
+        return NULL;
+    }
 
     const lvgl_port_display_cfg_t disp_cfg = {
         .io_handle = bsp_display_io(),
@@ -52,12 +58,18 @@ lv_disp_t *bsp_lvgl_init(void)
         },
     };
     s_disp = lvgl_port_add_disp(&disp_cfg);
-    ESP_RETURN_ON_FALSE(s_disp != NULL, ESP_FAIL, TAG, "lvgl_port_add_disp failed");
+    if (s_disp == NULL) {
+        ESP_LOGE(TAG, "lvgl_port_add_disp failed");
+        return NULL;
+    }
 
 #if defined(CONFIG_BSP_ENABLE_TOUCH)
     /* 触摸屏 */
     esp_lcd_touch_handle_t tp = NULL;
-    ESP_RETURN_ON_ERROR(bsp_touch_new(&tp), TAG, "touch init failed");
+    if (bsp_touch_new(&tp) != ESP_OK) {
+        ESP_LOGE(TAG, "touch init failed");
+        return NULL;
+    }
 
     const lvgl_port_touch_cfg_t touch_cfg = {
         .disp = s_disp,
