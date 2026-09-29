@@ -16,7 +16,9 @@
   - `examples/bsp_smoke/` — BSP 自检示例（自设计界面，仅作参考）；
   - `tools/` — 字体工具链 + 构建/烧录脚本；
   - `docs/` — 文档（从这里开始查）；
-  - `01-…14-*/`、`hello_world/` — 厂商 demo 集（**只作参考，不是依赖**）。
+  - 厂商 demo（01~14、hello_world）**不随仓库分发**（.gitignore 已排除）；
+    如需参考，另行获取后放同名目录即可，[docs/examples.md](docs/examples.md)
+    有“demo → BSP 模块”对照表。
 
 ## 2. 开始前：环境与工具
 

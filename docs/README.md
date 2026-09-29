@@ -40,7 +40,8 @@ esp32-s3/
 │   ├── build_firmware.ps1/.sh   # 编译 + 合并固件（0x0）
 │   └── flash_firmware.ps1       # 烧录（强制二次确认）
 ├── docs/                   # 本文档目录
-└── 01-boot_key … 14-handheld/  # 厂商 demo（只作参考）
+└── （厂商 demo 01~14、hello_world 不随仓库分发；如需参考，
+     另行获取后放同名目录，对照表见 examples.md）
 ```
 
 ## 常见问题
